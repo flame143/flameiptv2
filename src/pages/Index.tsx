@@ -1,12 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import VideoPlayer from '../components/VideoPlayer';
+import Sidebar from '../components/Sidebar';
+import { channels } from '../data/channels';
+import { Button } from '../components/ui/button';
+import { Menu } from 'lucide-react';
 
 const Index = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState(channels[0]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredChannels = channels.filter(channel => 
+    channel.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="h-screen w-full bg-black relative">
+      <div className="absolute top-4 left-4 z-50">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-white hover:bg-white/20"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
       </div>
+
+      <Sidebar 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        channels={filteredChannels}
+        onChannelSelect={(channel) => {
+          setSelectedChannel(channel);
+          setIsSidebarOpen(false);
+        }}
+        selectedChannel={selectedChannel}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      <VideoPlayer channel={selectedChannel} />
     </div>
   );
 };
