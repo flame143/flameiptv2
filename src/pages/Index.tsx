@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import VideoPlayer from '../components/VideoPlayer';
-import Sidebar from '../components/Sidebar';
+import Sidebar, { Channel } from '../components/Sidebar';
 import { channels } from '../data/channels';
 import { Button } from '../components/ui/button';
 import { Menu } from 'lucide-react';
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedChannel, setSelectedChannel] = useState(channels[0]);
+  const [selectedChannel, setSelectedChannel] = useState<Channel>(channels[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredChannels = channels.filter(channel => 

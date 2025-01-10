@@ -2,9 +2,9 @@ import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '../lib/utils';
 
-interface Channel {
+export interface Channel {
   name: string;
-  manifestUri: string;
+  manifestUri?: string;
   type: string;
   clearKey?: {
     [key: string]: string;

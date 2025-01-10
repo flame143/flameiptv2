@@ -1,17 +1,7 @@
 import { useEffect, useRef } from 'react';
 // @ts-ignore
 import shaka from 'shaka-player';
-
-interface Channel {
-  name: string;
-  manifestUri?: string;
-  type: string;
-  clearKey?: {
-    [key: string]: string;
-  };
-  embedUrl?: string;
-  logo: string;
-}
+import type { Channel } from './Sidebar';
 
 interface VideoPlayerProps {
   channel: Channel;
