@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
+// @ts-ignore
 import shaka from 'shaka-player';
 
 interface Channel {
   name: string;
-  manifestUri: string;
+  manifestUri?: string;
   type: string;
   clearKey?: {
     [key: string]: string;
@@ -34,7 +35,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
           const video = videoRef.current!;
           const player = new shaka.Player();
-          await player.attach(video); // Using attach instead of constructor
+          await player.attach(video);
           playerRef.current = player;
 
           if (channel.clearKey) {
@@ -42,13 +43,15 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
 
           if (channel.type === 'youtube') {
-            return; // Handle YouTube separately
+            return;
           }
 
-          await player.load(channel.manifestUri);
-          video.play().catch(error => {
-            console.error('Error auto-playing video:', error);
-          });
+          if (channel.manifestUri) {
+            await player.load(channel.manifestUri);
+            video.play().catch(error => {
+              console.error('Error auto-playing video:', error);
+            });
+          }
         } catch (error) {
           console.error('Error loading video:', error);
         }
