@@ -33,15 +33,11 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
 
           const video = videoRef.current!;
-          const player = new shaka.Player(video);
+          const player = new shaka.Player();
+          await player.attach(video); // Using attach instead of constructor
           playerRef.current = player;
 
           if (channel.clearKey) {
-            const clearKeyConfig = {
-              keySystem: 'org.w3.clearkey',
-              licenseServerUri: '',
-              clearKeys: channel.clearKey
-            };
             player.configure({ drm: { clearKeys: channel.clearKey } });
           }
 
@@ -50,7 +46,9 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
 
           await player.load(channel.manifestUri);
-          video.play();
+          video.play().catch(error => {
+            console.error('Error auto-playing video:', error);
+          });
         } catch (error) {
           console.error('Error loading video:', error);
         }
@@ -70,7 +68,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
     return (
       <div className="w-full h-screen bg-black">
         <iframe
-          src={channel.embedUrl}
+          src={`${channel.embedUrl}&autoplay=1&mute=0`}
           className="w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -86,6 +84,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         className="w-full h-full"
         controls
         playsInline
+        autoPlay
       />
     </div>
   );
