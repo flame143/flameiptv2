@@ -45,7 +45,7 @@ const Sidebar = ({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-0 left-0 w-80 h-full bg-zinc-900 z-50 transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 w-full md:w-80 h-[70vh] md:h-full bg-zinc-900/80 backdrop-blur-sm z-50 transform transition-transform duration-300 ease-in-out rounded-b-xl md:rounded-none",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -54,11 +54,11 @@ const Sidebar = ({
             placeholder="Search channels..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-zinc-800 border-zinc-700 text-white"
+            className="bg-zinc-800/50 border-zinc-700 text-white"
           />
         </div>
 
-        <ScrollArea className="h-[calc(100vh-5rem)]">
+        <ScrollArea className="h-[calc(100%-5rem)]">
           <div className="grid gap-2 p-4">
             {channels.map((channel) => (
               <button
@@ -66,8 +66,8 @@ const Sidebar = ({
                 onClick={() => onChannelSelect(channel)}
                 className={cn(
                   "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                  "hover:bg-zinc-800",
-                  selectedChannel.name === channel.name ? "bg-zinc-800" : "bg-transparent"
+                  "hover:bg-zinc-800/50",
+                  selectedChannel.name === channel.name ? "bg-zinc-800/50" : "bg-transparent"
                 )}
               >
                 <img
