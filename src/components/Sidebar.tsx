@@ -45,7 +45,7 @@ const Sidebar = ({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-0 left-0 w-full md:w-80 h-[70vh] md:h-full bg-zinc-900/80 backdrop-blur-sm z-50 transform transition-transform duration-300 ease-in-out rounded-b-xl md:rounded-none",
+          "fixed top-0 left-0 w-1/2 md:w-80 h-[70vh] md:h-full bg-zinc-900/80 backdrop-blur-sm z-50 transform transition-transform duration-300 ease-in-out rounded-b-xl md:rounded-none",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
