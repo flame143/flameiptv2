@@ -196,8 +196,25 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           style={{ position: 'relative' }}
         />
         <style>{`
-          [class*="lovable"] {
+          [class*="lovable"],
+          [class*="Lovable"],
+          [id*="lovable"],
+          [id*="Lovable"],
+          [data-lovable],
+          .lovable-button,
+          .lovable-editor {
             display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            width: 0 !important;
+            height: 0 !important;
+            clip: rect(0 0 0 0) !important;
+            margin: -1px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            overflow: hidden !important;
           }
         `}</style>
       </div>
@@ -217,9 +234,26 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         <div className="absolute text-white">Loading...</div>
       )}
       <style>{`
-        [class*="lovable"] {
-          display: none !important;
-        }
+          [class*="lovable"],
+          [class*="Lovable"],
+          [id*="lovable"],
+          [id*="Lovable"],
+          [data-lovable],
+          .lovable-button,
+          .lovable-editor {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            width: 0 !important;
+            height: 0 !important;
+            clip: rect(0 0 0 0) !important;
+            margin: -1px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            overflow: hidden !important;
+          }
       `}</style>
     </div>
   );
