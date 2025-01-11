@@ -14,46 +14,88 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
   useEffect(() => {
     if (!videoRef.current) return;
 
+    const video = videoRef.current;
+    let player: shaka.Player | null = null;
+
     const initPlayer = async () => {
-      shaka.polyfill.installAll();
+      try {
+        // Install polyfills only once
+        shaka.polyfill.installAll();
 
-      if (shaka.Player.isBrowserSupported()) {
-        try {
-          if (playerRef.current) {
-            await playerRef.current.destroy();
-          }
-
-          const video = videoRef.current!;
-          const player = new shaka.Player();
-          await player.attach(video);
-          playerRef.current = player;
-
-          if (channel.clearKey) {
-            player.configure({ drm: { clearKeys: channel.clearKey } });
-          }
-
-          if (channel.type === 'youtube') {
-            return;
-          }
-
-          if (channel.manifestUri) {
-            await player.load(channel.manifestUri);
-            video.play().catch(error => {
-              console.error('Error auto-playing video:', error);
-            });
-          }
-        } catch (error) {
-          console.error('Error loading video:', error);
+        if (!shaka.Player.isBrowserSupported()) {
+          console.error('Browser not supported!');
+          return;
         }
+
+        // Clean up existing player
+        if (playerRef.current) {
+          await playerRef.current.destroy();
+          playerRef.current = null;
+        }
+
+        // Reset video element state
+        video.src = '';
+        video.load();
+
+        // Create and attach new player
+        player = new shaka.Player();
+        await player.attach(video);
+        playerRef.current = player;
+
+        // Configure DRM if needed
+        if (channel.clearKey) {
+          player.configure({ 
+            drm: { 
+              clearKeys: channel.clearKey,
+              retryParameters: {
+                maxAttempts: 3,
+                baseDelay: 1000,
+                backoffFactor: 2
+              }
+            }
+          });
+        }
+
+        if (channel.type === 'youtube') return;
+
+        if (channel.manifestUri) {
+          await player.load(channel.manifestUri);
+          
+          // Ensure video element is ready before playing
+          if (video.readyState >= 2) {
+            await video.play();
+          } else {
+            video.addEventListener('loadeddata', async () => {
+              try {
+                await video.play();
+              } catch (error) {
+                console.error('Error playing video after load:', error);
+              }
+            }, { once: true });
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing player:', error);
       }
     };
 
     initPlayer();
 
+    // Cleanup function
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      const cleanup = async () => {
+        try {
+          if (playerRef.current) {
+            await playerRef.current.destroy();
+            playerRef.current = null;
+          }
+          video.src = '';
+          video.load();
+        } catch (error) {
+          console.error('Error during cleanup:', error);
+        }
+      };
+      cleanup();
     };
   }, [channel]);
 
