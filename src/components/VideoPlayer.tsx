@@ -64,17 +64,51 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           console.log('Loading manifest for channel:', channel.name);
           await player.load(channel.manifestUri);
           
-          // Set muted to true initially to allow autoplay
+          // Always start muted to ensure autoplay works
           video.muted = true;
+          video.volume = 0;
+
+          // Add event listeners for tracking playback state
+          const playHandler = async () => {
+            console.log('Video started playing:', channel.name);
+            // Try to unmute after playback starts
+            try {
+              video.muted = false;
+              video.volume = 1;
+              console.log('Successfully unmuted video');
+            } catch (error) {
+              console.log('Could not unmute video:', error);
+            }
+          };
+
+          const errorHandler = (error: Event) => {
+            console.error('Video playback error:', error);
+          };
+
+          video.addEventListener('playing', playHandler);
+          video.addEventListener('error', errorHandler);
 
           try {
+            console.log('Attempting to play video');
             await video.play();
-            // After successful autoplay, unmute if possible
-            video.muted = false;
           } catch (error) {
-            console.log('Autoplay failed, keeping video muted:', error);
-            // Keep video muted if autoplay fails
+            console.error('Initial play attempt failed:', error);
+            // Keep trying to play
+            const playInterval = setInterval(async () => {
+              try {
+                await video.play();
+                clearInterval(playInterval);
+              } catch (err) {
+                console.log('Retry play attempt failed:', err);
+              }
+            }, 1000);
           }
+
+          // Cleanup event listeners
+          return () => {
+            video.removeEventListener('playing', playHandler);
+            video.removeEventListener('error', errorHandler);
+          };
         }
       } catch (error) {
         console.error('Error initializing player:', error);
