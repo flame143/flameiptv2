@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // @ts-ignore
 import shaka from 'shaka-player';
 import type { Channel } from './Sidebar';
@@ -10,154 +10,178 @@ interface VideoPlayerProps {
 const VideoPlayer = ({ channel }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<shaka.Player | null>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!videoRef.current) return;
+    let isMounted = true;
+    setIsLoading(true);
 
-    const video = videoRef.current;
-    
-    const initPlayer = async () => {
-      try {
-        // Cleanup previous instance first
-        if (cleanupRef.current) {
-          cleanupRef.current();
-          cleanupRef.current = null;
-        }
-
-        if (playerRef.current) {
+    // Force destroy any existing instances
+    const destroyExisting = async () => {
+      if (playerRef.current) {
+        try {
           await playerRef.current.destroy();
           playerRef.current = null;
+        } catch (err) {
+          console.error('Error destroying player:', err);
         }
+      }
 
-        // Reset video element completely
-        video.removeAttribute('src');
-        video.load();
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+          videoRef.current.removeAttribute('src');
+          videoRef.current.load();
+        } catch (err) {
+          console.error('Error resetting video:', err);
+        }
+      }
+    };
+
+    // Wait a bit before initializing new player
+    const initializeNewPlayer = async () => {
+      if (!isMounted || !videoRef.current) return;
+
+      try {
+        await destroyExisting();
+        
+        // Wait for cleanup
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (!isMounted) return;
+
+        const video = videoRef.current;
+        
+        // Reset video state
         video.muted = true;
         video.volume = 0;
-
-        console.log('Initializing player for channel:', channel.name);
+        
+        // Initialize Shaka
         shaka.polyfill.installAll();
-
+        
         if (!shaka.Player.isBrowserSupported()) {
-          console.error('Browser not supported!');
+          throw new Error('Browser not supported');
+        }
+
+        // Create new player
+        const player = new shaka.Player();
+        
+        // Configure player before attaching
+        player.configure({
+          streaming: {
+            bufferingGoal: 30,
+            rebufferingGoal: 15,
+            bufferBehind: 30,
+            retryParameters: {
+              maxAttempts: 5,
+              baseDelay: 1000,
+              backoffFactor: 2,
+              timeout: 30000
+            }
+          },
+          abr: {
+            enabled: true,
+            defaultBandwidthEstimate: 1000000
+          }
+        });
+
+        // Attach player to video element
+        await player.attach(video);
+        
+        if (!isMounted) {
+          await player.destroy();
           return;
         }
 
-        // Create new player instance
-        const player = new shaka.Player();
-        await player.attach(video);
         playerRef.current = player;
 
         // Configure DRM if needed
         if (channel.clearKey) {
-          console.log('Configuring DRM for channel:', channel.name);
           player.configure({
             drm: {
               clearKeys: channel.clearKey,
               retryParameters: {
-                maxAttempts: 5,  // Increased retry attempts
+                maxAttempts: 5,
                 baseDelay: 1000,
                 backoffFactor: 2
               }
-            },
-            streaming: {
-              bufferingGoal: 30,  // Increase buffer size
-              rebufferingGoal: 15,
-              bufferBehind: 30
             }
           });
         }
 
-        if (channel.type === 'youtube') return;
-
         if (channel.manifestUri) {
-          console.log('Loading manifest for channel:', channel.name);
+          // Load manifest
           await player.load(channel.manifestUri);
-
-          let playAttempts = 0;
-          const maxPlayAttempts = 5;
           
-          const playHandler = async () => {
-            console.log('Video started playing:', channel.name);
-            try {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              video.muted = false;
-              video.volume = 1;
-              console.log('Successfully unmuted video');
-            } catch (error) {
-              console.log('Could not unmute video:', error);
+          if (!isMounted) {
+            await player.destroy();
+            return;
+          }
+
+          // Setup event listeners
+          const onError = (error: Event) => {
+            console.error('Playback error:', error);
+            // Attempt recovery
+            if (isMounted && playerRef.current === player) {
+              initializeNewPlayer();
             }
           };
 
-          const errorHandler = (error: Event) => {
-            console.error('Video playback error:', error);
-            retryPlay();
-          };
-
-          const retryPlay = async () => {
-            if (playAttempts < maxPlayAttempts) {
-              playAttempts++;
-              console.log(`Retry attempt ${playAttempts}/${maxPlayAttempts}`);
+          const onPlaying = async () => {
+            if (isMounted && video.muted) {
               try {
-                video.muted = true;
-                await video.play();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                video.muted = false;
+                video.volume = 1;
               } catch (err) {
-                console.log('Retry play attempt failed:', err);
-                setTimeout(retryPlay, 2000); // Wait longer between retries
+                console.error('Error unmuting:', err);
               }
             }
           };
 
-          video.addEventListener('playing', playHandler);
-          video.addEventListener('error', errorHandler);
-          video.addEventListener('pause', retryPlay);
+          video.addEventListener('error', onError);
+          video.addEventListener('playing', onPlaying);
 
-          // Initial play attempt
+          // Attempt playback
           try {
-            console.log('Attempting to play video');
             await video.play();
-          } catch (error) {
-            console.error('Initial play attempt failed:', error);
-            retryPlay();
+            setIsLoading(false);
+          } catch (err) {
+            console.error('Play failed:', err);
+            // Retry once more after a delay
+            if (isMounted) {
+              setTimeout(async () => {
+                if (isMounted && playerRef.current === player) {
+                  try {
+                    await video.play();
+                  } catch (retryErr) {
+                    console.error('Retry failed:', retryErr);
+                  }
+                }
+              }, 2000);
+            }
           }
 
-          // Store cleanup function
-          cleanupRef.current = () => {
-            video.removeEventListener('playing', playHandler);
-            video.removeEventListener('error', errorHandler);
-            video.removeEventListener('pause', retryPlay);
-            video.pause();
-            video.removeAttribute('src');
-            video.load();
+          return () => {
+            video.removeEventListener('error', onError);
+            video.removeEventListener('playing', onPlaying);
           };
         }
-      } catch (error) {
-        console.error('Error initializing player:', error);
+      } catch (err) {
+        console.error('Player initialization failed:', err);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    initPlayer();
+    // Start initialization process
+    initializeNewPlayer();
 
-    // Cleanup function
+    // Cleanup
     return () => {
-      const cleanup = async () => {
-        try {
-          if (cleanupRef.current) {
-            cleanupRef.current();
-            cleanupRef.current = null;
-          }
-          if (playerRef.current) {
-            await playerRef.current.destroy();
-            playerRef.current = null;
-          }
-          video.removeAttribute('src');
-          video.load();
-        } catch (error) {
-          console.error('Error during cleanup:', error);
-        }
-      };
-      cleanup();
+      isMounted = false;
+      destroyExisting();
     };
   }, [channel]);
 
@@ -183,6 +207,9 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         playsInline
         autoPlay
       />
+      {isLoading && (
+        <div className="absolute text-white">Loading...</div>
+      )}
     </div>
   );
 };
