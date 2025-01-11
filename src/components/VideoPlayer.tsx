@@ -193,7 +193,13 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           className="w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          style={{ position: 'relative' }}
         />
+        <style>{`
+          [class*="lovable"] {
+            display: none !important;
+          }
+        `}</style>
       </div>
     );
   }
@@ -210,6 +216,11 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
       {isLoading && (
         <div className="absolute text-white">Loading...</div>
       )}
+      <style>{`
+        [class*="lovable"] {
+          display: none !important;
+        }
+      `}</style>
     </div>
   );
 };
