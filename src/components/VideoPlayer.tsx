@@ -7,25 +7,28 @@ interface VideoPlayerProps {
   channel: Channel;
 }
 
+// You can use any of these CORS proxies:
+const CORS_PROXIES = [
+  'https://cors.zimjs.com/',  // Free CORS proxy
+  'https://corsproxy.io/?',   // Alternative proxy
+  'https://api.allorigins.win/raw?url=' // Another option
+];
+
 const VideoPlayer = ({ channel }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<shaka.Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Function to try different proxies
   const getProxiedUrl = (url: string) => {
-    // Check if the URL is from problematic domains
-    if (url.includes('astro.com.my')) {
-      // Use a CORS proxy
-      return `https://cors-anywhere.herokuapp.com/${url}`;
-    }
-    return url;
+    // For testing, using the first proxy. In production, you might want to try others if one fails
+    return `${CORS_PROXIES[0]}${encodeURIComponent(url)}`;
   };
 
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
 
-    // Force destroy any existing instances
     const destroyExisting = async () => {
       if (playerRef.current) {
         try {
@@ -47,35 +50,28 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
       }
     };
 
-    // Wait a bit before initializing new player
     const initializeNewPlayer = async () => {
       if (!isMounted || !videoRef.current) return;
 
       try {
         await destroyExisting();
-        
-        // Wait for cleanup
         await new Promise(resolve => setTimeout(resolve, 500));
         
         if (!isMounted) return;
 
         const video = videoRef.current;
-        
-        // Reset video state
         video.muted = true;
         video.volume = 0;
         
-        // Initialize Shaka
         shaka.polyfill.installAll();
         
         if (!shaka.Player.isBrowserSupported()) {
           throw new Error('Browser not supported');
         }
 
-        // Create new player
         const player = new shaka.Player();
         
-        // Configure player before attaching
+        // Configure with proxy support
         player.configure({
           streaming: {
             bufferingGoal: 30,
@@ -88,13 +84,26 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
               timeout: 30000
             }
           },
-          abr: {
-            enabled: true,
-            defaultBandwidthEstimate: 1000000
+          manifest: {
+            retryParameters: {
+              maxAttempts: 5,
+              baseDelay: 1000,
+              backoffFactor: 2,
+              timeout: 30000
+            }
           }
         });
 
-        // Attach player to video element
+        // Add network request filter for proxying
+        player.getNetworkingEngine()?.registerRequestFilter((type, request) => {
+          // Only proxy manifest and segment requests
+          if (type === shaka.net.NetworkingEngine.RequestType.MANIFEST ||
+              type === shaka.net.NetworkingEngine.RequestType.SEGMENT) {
+            const originalUri = request.uris[0];
+            request.uris = [getProxiedUrl(originalUri)];
+          }
+        });
+
         await player.attach(video);
         
         if (!isMounted) {
@@ -104,7 +113,6 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
         playerRef.current = player;
 
-        // Configure DRM if needed
         if (channel.clearKey) {
           player.configure({
             drm: {
@@ -119,20 +127,17 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         }
 
         if (channel.manifestUri) {
-          console.log('Loading manifest for channel:', channel.name);
-          // Use proxied URL for problematic domains
-          const manifestUrl = getProxiedUrl(channel.manifestUri);
-          await player.load(manifestUrl);
+          // Use proxied URL for initial manifest load
+          const proxiedManifestUri = getProxiedUrl(channel.manifestUri);
+          await player.load(proxiedManifestUri);
           
           if (!isMounted) {
             await player.destroy();
             return;
           }
 
-          // Setup event listeners
           const onError = (error: Event) => {
             console.error('Playback error:', error);
-            // Attempt recovery
             if (isMounted && playerRef.current === player) {
               initializeNewPlayer();
             }
@@ -153,13 +158,11 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           video.addEventListener('error', onError);
           video.addEventListener('playing', onPlaying);
 
-          // Attempt playback
           try {
             await video.play();
             setIsLoading(false);
           } catch (err) {
             console.error('Play failed:', err);
-            // Retry once more after a delay
             if (isMounted) {
               setTimeout(async () => {
                 if (isMounted && playerRef.current === player) {
@@ -186,10 +189,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
       }
     };
 
-    // Start initialization process
     initializeNewPlayer();
 
-    // Cleanup
     return () => {
       isMounted = false;
       destroyExisting();
