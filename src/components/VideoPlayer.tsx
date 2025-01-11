@@ -19,7 +19,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
     const initPlayer = async () => {
       try {
-        // Install polyfills only once
+        console.log('Initializing player for channel:', channel.name);
         shaka.polyfill.installAll();
 
         if (!shaka.Player.isBrowserSupported()) {
@@ -29,6 +29,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
         // Clean up existing player
         if (playerRef.current) {
+          console.log('Cleaning up existing player');
           await playerRef.current.destroy();
           playerRef.current = null;
         }
@@ -44,6 +45,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
         // Configure DRM if needed
         if (channel.clearKey) {
+          console.log('Configuring DRM for channel:', channel.name);
           player.configure({ 
             drm: { 
               clearKeys: channel.clearKey,
@@ -59,19 +61,19 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         if (channel.type === 'youtube') return;
 
         if (channel.manifestUri) {
+          console.log('Loading manifest for channel:', channel.name);
           await player.load(channel.manifestUri);
           
-          // Ensure video element is ready before playing
-          if (video.readyState >= 2) {
+          // Set muted to true initially to allow autoplay
+          video.muted = true;
+
+          try {
             await video.play();
-          } else {
-            video.addEventListener('loadeddata', async () => {
-              try {
-                await video.play();
-              } catch (error) {
-                console.error('Error playing video after load:', error);
-              }
-            }, { once: true });
+            // After successful autoplay, unmute if possible
+            video.muted = false;
+          } catch (error) {
+            console.log('Autoplay failed, keeping video muted:', error);
+            // Keep video muted if autoplay fails
           }
         }
       } catch (error) {
