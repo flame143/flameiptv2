@@ -12,6 +12,15 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
   const playerRef = useRef<shaka.Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const getProxiedUrl = (url: string) => {
+    // Check if the URL is from problematic domains
+    if (url.includes('astro.com.my')) {
+      // Use a CORS proxy
+      return `https://cors-anywhere.herokuapp.com/${url}`;
+    }
+    return url;
+  };
+
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
@@ -110,8 +119,10 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         }
 
         if (channel.manifestUri) {
-          // Load manifest
-          await player.load(channel.manifestUri);
+          console.log('Loading manifest for channel:', channel.name);
+          // Use proxied URL for problematic domains
+          const manifestUrl = getProxiedUrl(channel.manifestUri);
+          await player.load(manifestUrl);
           
           if (!isMounted) {
             await player.destroy();
