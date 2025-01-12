@@ -22,7 +22,7 @@ interface SidebarProps {
   selectedChannel: Channel;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  favorites: string[];
+  favorites?: string[];
   onToggleFavorite: (channelName: string) => void;
 }
 
@@ -34,7 +34,7 @@ const Sidebar = ({
   selectedChannel,
   searchQuery,
   onSearchChange,
-  favorites,
+  favorites = [], // Add default empty array
   onToggleFavorite,
 }: SidebarProps) => {
   return (

@@ -10,6 +10,7 @@ interface FavoritesMenuProps {
   selectedChannel: Channel;
   onChannelSelect: (channel: Channel) => void;
   onToggleFavorite: (channelName: string) => void;
+  favorites?: string[];
 }
 
 const FavoritesMenu = ({
@@ -19,7 +20,11 @@ const FavoritesMenu = ({
   selectedChannel,
   onChannelSelect,
   onToggleFavorite,
+  favorites = [], // Add default empty array
 }: FavoritesMenuProps) => {
+  // Only show channels that are in favorites
+  const favoriteChannels = channels.filter(channel => favorites.includes(channel.name));
+
   return (
     <>
       {/* Backdrop */}
@@ -43,7 +48,7 @@ const FavoritesMenu = ({
 
         <ScrollArea className="h-[calc(100%-5rem)] channel-list">
           <div className="grid gap-0.5 p-2">
-            {channels.map((channel, index) => (
+            {favoriteChannels.map((channel, index) => (
               <button
                 key={channel.name}
                 onClick={() => onChannelSelect(channel)}
