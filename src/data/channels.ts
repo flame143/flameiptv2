@@ -784,7 +784,7 @@ export const channels = [
   },
   {
     name: 'GTV',
-    manifestUri: 'https://data.enics.cloud:9999/stream/iptv/xgtv/master.m3u8?u=xigncodee&p=79e5ce570386717d2847ca08ace1c50a64c5866034765929c4a0cafa35e2e478',
+    manifestUri: 'https://data.enics.cloud/stream/iptv/xgtv/master.m3u8?u=xigncode&p=79e5ce570386717d2847ca08ace1c50a64c5866034765929c4a0cafa35e2e478',
     type: 'hls',
     logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4f/GTV_Network_Logo_Vector.svg/1200px-GTV_Network_Logo_Vector.svg.png'
   }
