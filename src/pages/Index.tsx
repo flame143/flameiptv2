@@ -53,12 +53,12 @@ const Index = () => {
   }, [selectedChannel, isSidebarOpen]);
 
   return (
-    <div className="h-screen w-full bg-[#141414] relative flex">
+    <div className="h-screen w-full bg-black relative">
       <div className="absolute top-4 left-4 z-50">
         <Button 
           variant="ghost" 
           size="icon"
-          className="text-white hover:bg-white/10"
+          className="text-white hover:bg-white/20"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         >
           <Menu className="h-6 w-6" />
@@ -78,9 +78,7 @@ const Index = () => {
         onSearchChange={setSearchQuery}
       />
 
-      <div className="flex-1 relative">
-        <VideoPlayer channel={selectedChannel} />
-      </div>
+      <VideoPlayer channel={selectedChannel} />
     </div>
   );
 };
