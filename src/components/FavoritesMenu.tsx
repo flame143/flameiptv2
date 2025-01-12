@@ -1,42 +1,25 @@
-import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '../lib/utils';
-import { Star, StarOff } from 'lucide-react';
+import { Star } from 'lucide-react';
+import type { Channel } from './Sidebar';
 
-export interface Channel {
-  name: string;
-  manifestUri?: string;
-  type: string;
-  clearKey?: {
-    [key: string]: string;
-  };
-  embedUrl?: string;
-  logo: string;
-}
-
-interface SidebarProps {
+interface FavoritesMenuProps {
   isOpen: boolean;
   onClose: () => void;
   channels: Channel[];
-  onChannelSelect: (channel: Channel) => void;
   selectedChannel: Channel;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  favorites: string[];
+  onChannelSelect: (channel: Channel) => void;
   onToggleFavorite: (channelName: string) => void;
 }
 
-const Sidebar = ({
+const FavoritesMenu = ({
   isOpen,
   onClose,
   channels,
-  onChannelSelect,
   selectedChannel,
-  searchQuery,
-  onSearchChange,
-  favorites,
+  onChannelSelect,
   onToggleFavorite,
-}: SidebarProps) => {
+}: FavoritesMenuProps) => {
   return (
     <>
       {/* Backdrop */}
@@ -47,20 +30,15 @@ const Sidebar = ({
         />
       )}
 
-      {/* Sidebar */}
+      {/* Favorites Menu */}
       <div
         className={cn(
-          "fixed top-0 left-0 w-1/2 md:w-80 h-[70vh] md:h-full bg-[#141414]/90 backdrop-blur-sm z-50 transform transition-transform duration-300 ease-in-out rounded-b-xl md:rounded-none",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 right-0 w-1/2 md:w-80 h-[70vh] md:h-full bg-[#141414]/90 backdrop-blur-sm z-50 transform transition-transform duration-300 ease-in-out rounded-b-xl md:rounded-none",
+          isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         <div className="p-4">
-          <Input
-            placeholder="Search channels..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400"
-          />
+          <h2 className="text-white text-lg font-bold">Favorite Channels</h2>
         </div>
 
         <ScrollArea className="h-[calc(100%-5rem)] channel-list">
@@ -68,7 +46,6 @@ const Sidebar = ({
             {channels.map((channel, index) => (
               <button
                 key={channel.name}
-                id={`channel-${channel.name}`}
                 onClick={() => onChannelSelect(channel)}
                 className={cn(
                   "flex items-center gap-4 p-3 w-full text-left transition-colors relative group",
@@ -83,13 +60,9 @@ const Sidebar = ({
                     e.stopPropagation();
                     onToggleFavorite(channel.name);
                   }}
-                  className="absolute right-3 text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute right-3 text-orange-500"
                 >
-                  {favorites.includes(channel.name) ? (
-                    <Star className="w-4 h-4 fill-orange-500" />
-                  ) : (
-                    <StarOff className="w-4 h-4" />
-                  )}
+                  <Star className="w-4 h-4 fill-orange-500" />
                 </button>
               </button>
             ))}
@@ -100,4 +73,4 @@ const Sidebar = ({
   );
 };
 
-export default Sidebar;
+export default FavoritesMenu;

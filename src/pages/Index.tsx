@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import VideoPlayer from '../components/VideoPlayer';
 import Sidebar, { Channel } from '../components/Sidebar';
+import FavoritesMenu from '../components/FavoritesMenu';
 import { channels } from '../data/channels';
 import { Button } from '../components/ui/button';
 import { Menu } from 'lucide-react';
@@ -8,8 +9,13 @@ import { useToast } from '../components/ui/use-toast';
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel>(channels[0]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem('favoriteChannels');
+    return saved ? JSON.parse(saved) : [];
+  });
   const { toast } = useToast();
 
   const filteredChannels = channels.filter(channel => 
@@ -30,6 +36,16 @@ const Index = () => {
     toast({
       description: `Switched to ${channels[newIndex].name}`,
       duration: 2000,
+    });
+  };
+
+  const toggleFavorite = (channelName: string) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(channelName)
+        ? prev.filter(name => name !== channelName)
+        : [...prev, channelName];
+      localStorage.setItem('favoriteChannels', JSON.stringify(newFavorites));
+      return newFavorites;
     });
   };
 
@@ -76,6 +92,20 @@ const Index = () => {
         selectedChannel={selectedChannel}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
+      />
+
+      <FavoritesMenu
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
+        channels={channels.filter(channel => favorites.includes(channel.name))}
+        selectedChannel={selectedChannel}
+        onChannelSelect={(channel) => {
+          setSelectedChannel(channel);
+          setIsFavoritesOpen(false);
+        }}
+        onToggleFavorite={toggleFavorite}
       />
 
       <VideoPlayer channel={selectedChannel} />
