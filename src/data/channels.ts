@@ -61,7 +61,7 @@ export const channels = [
   },
   {
     name: 'Billiard TV',
-    manifestUri: 'https://1b29dd71cd5e4191a3eb26afff631ed3.mediatailor.us-west-2.amazonaws.com/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/SportsTribal-BilliardTV/BILLIARDTV_SCTE.m3u8',
+    manifestUri: 'https://1b29dd71cd5e419a3eb26afff631ed3.mediatailor.us-west-2.amazonaws.com/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/SportsTribal-BilliardTV/BILLIARDTV_SCTE.m3u8',
     type: 'hls',
     logo: 'https://th.bing.com/th/id/OIP.JKBoiu3cX_PVMSwZLYFxCAHaHa?rs=1&pid=ImgDetMain'
   },
@@ -781,5 +781,11 @@ export const channels = [
     },
     type: 'mpd',
     logo: 'https://th.bing.com/th/id/OIP.8xIdcYektX82pKAdaXcQEgHaHr?rs=1&pid=ImgDetMain'
+  },
+  {
+    name: 'GTV',
+    manifestUri: 'http://data.enics.cloud:9999/stream/iptv/xgtv/master.m3u8?u=xigncodee&p=79e5ce570386717d2847ca08ace1c50a64c5866034765929c4a0cafa35e2e478',
+    type: 'hls',
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4f/GTV_Network_Logo_Vector.svg/1200px-GTV_Network_Logo_Vector.svg.png'
   }
 ];
