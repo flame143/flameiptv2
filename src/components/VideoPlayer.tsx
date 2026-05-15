@@ -110,8 +110,13 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         }
 
         if (channel.manifestUri) {
+          const url = channel.proxyUrl
+            ? (channel.proxyUrl.includes('{url}')
+                ? channel.proxyUrl.replace('{url}', encodeURIComponent(channel.manifestUri))
+                : channel.proxyUrl + encodeURIComponent(channel.manifestUri))
+            : channel.manifestUri;
           // Load manifest
-          await player.load(channel.manifestUri);
+          await player.load(url);
           
           if (!isMounted) {
             await player.destroy();

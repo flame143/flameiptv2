@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import { Star, StarOff } from 'lucide-react';
 
 export interface Channel {
+  id?: string;
   name: string;
   manifestUri?: string;
   type: string;
@@ -12,6 +13,7 @@ export interface Channel {
   };
   embedUrl?: string;
   logo: string;
+  proxyUrl?: string;
 }
 
 interface SidebarProps {
