@@ -116,7 +116,7 @@ const Admin = () => {
 
   const filtered = channels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
+  if (loading || roleLoading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-black text-white">
