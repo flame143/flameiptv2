@@ -40,7 +40,7 @@ const empty: Omit<ChannelRow, 'id'> = {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, loading, roleLoading, signOut } = useAuth();
   const { toast } = useToast();
   const [channels, setChannels] = useState<ChannelRow[]>([]);
   const [editing, setEditing] = useState<ChannelRow | null>(null);
@@ -50,7 +50,7 @@ const Admin = () => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || roleLoading) return;
     if (!user) navigate('/auth');
     else if (!isAdmin) {
       toast({ description: 'You are not an admin.', variant: 'destructive' });
@@ -58,7 +58,7 @@ const Admin = () => {
     } else {
       load();
     }
-  }, [user, isAdmin, loading]);
+  }, [user, isAdmin, loading, roleLoading]);
 
   const load = async () => {
     const { data, error } = await supabase
@@ -116,7 +116,7 @@ const Admin = () => {
 
   const filtered = channels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
+  if (loading || roleLoading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-black text-white">
