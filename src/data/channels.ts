@@ -1,9 +1,9 @@
 export const channels = [
   {
     name: 'A2Z',
-    manifestUri: 'https://qp-pldt-live-grp-02-prod.akamaized.net/out/u/cg_a2z.mpd',
+    manifestUri: 'https://qp-pldt-live-bpk-01-prod.akamaized.net/bpk-tv/cg_a2z/default/index.mpd',
     clearKey: {
-      'f703e4c8ec9041eeb5028ab4248fa094': 'c22f2162e176eee6273a5d0b68d19530'
+      '3f6d8a2c1b7e4c9f8d52a7e1b0c6f93d': '4019f9269b9054a2b9e257b114ebbaf2'
     },
     type: 'mpd',
     logo: 'https://cdn1.clickthecity.com/wp-content/uploads/2020/10/21172907/a2z-logo.png'
