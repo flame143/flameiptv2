@@ -71,8 +71,6 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           // Add custom headers if available
           if (channel.userAgent) {
             request.headers['X-User-Agent'] = channel.userAgent;
-            // Note: Direct 'User-Agent' header is forbidden by browsers, 
-            // but many proxies use 'X-User-Agent' to override it.
           }
           if (channel.referrer) {
             request.headers['X-Referer'] = channel.referrer;
@@ -80,11 +78,31 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
           // Apply proxy to all requests
           if (channel.proxyUrl) {
-            const originalUrl = request.uris[0];
-            const proxyUrl = channel.proxyUrl.includes('{url}')
-              ? channel.proxyUrl.replace('{url}', encodeURIComponent(originalUrl))
-              : channel.proxyUrl + encodeURIComponent(originalUrl);
-            request.uris = [proxyUrl];
+            let uri = request.uris[0];
+            
+            // 1. Prevent Double Proxying
+            if (uri.includes('?url=') || uri.includes('&url=') || (uri.includes('workers.dev') && !channel.proxyUrl.includes('workers.dev'))) {
+              return;
+            }
+
+            const proxyBase = channel.proxyUrl.split('?')[0].split('{url}')[0];
+
+            // 2. Fix Broken Relative URLs resolved against Proxy Root
+            if (uri.startsWith(proxyBase) && uri !== proxyBase && !uri.includes('url=')) {
+              const pathAfterProxy = uri.substring(proxyBase.length);
+              if (channel.manifestUri) {
+                const manifestBase = channel.manifestUri.substring(0, channel.manifestUri.lastIndexOf('/') + 1);
+                uri = manifestBase + (pathAfterProxy.startsWith('/') ? pathAfterProxy.substring(1) : pathAfterProxy);
+              }
+            }
+
+            // 3. Apply Proxy correctly
+            if (!uri.startsWith(proxyBase) || (uri.startsWith(proxyBase) && !uri.includes('url='))) {
+              const proxyUrl = channel.proxyUrl.includes('{url}')
+                ? channel.proxyUrl.replace('{url}', encodeURIComponent(uri))
+                : channel.proxyUrl + encodeURIComponent(uri);
+              request.uris = [proxyUrl];
+            }
           }
         });
 
