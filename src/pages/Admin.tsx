@@ -222,8 +222,8 @@ const Admin = () => {
                 {c.logo && <img src={c.logo} alt="" className="w-10 h-10 object-contain rounded bg-black flex-shrink-0" />}
                 <div className="min-w-0">
                   <div className="font-medium truncate">
-                    {c.channel_no && <span className="text-zinc-500 mr-2">#{c.channel_no}</span>}
                     {c.name}
+
                   </div>
                   <div className="text-xs text-zinc-400 truncate">
                     {c.type}
@@ -254,26 +254,7 @@ const Admin = () => {
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Channel No.</Label>
-                <Input value={form.channel_no || ''} onChange={(e) => setForm({ ...form, channel_no: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <Label>EPG ID / Name</Label>
-                <Input value={form.epg_id || ''} onChange={(e) => setForm({ ...form, epg_id: e.target.value })} className={inputCls} />
-              </div>
-            </div>
 
-            <div>
-              <Label>External EPG XML URL (Optional)</Label>
-              <Input
-                placeholder="https://example.com/guide.xml"
-                value={form.epg_url || ''}
-                onChange={(e) => setForm({ ...form, epg_url: e.target.value })}
-                className={inputCls}
-              />
-            </div>
 
             <div>
               <Label>Stream URL *</Label>

@@ -58,10 +58,13 @@ const Index = () => {
     <div className="h-screen w-full bg-black text-white p-2 md:p-4 lg:p-6 overflow-hidden">
       
       {/* TUNEX MASTER CONTAINER */}
-      <div className="h-full w-full flex flex-col bg-black tunex-glow rounded-[1.5rem] md:rounded-[2rem] overflow-hidden border border-white/5 relative">
+      <div className="h-full w-full flex flex-col bg-[#0a0a0a] tunex-glow rounded-[1.5rem] md:rounded-[2rem] overflow-hidden border border-white/5 relative">
+
         
         {/* HEADER */}
-        <header className="h-16 md:h-20 px-6 md:px-10 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0a0a]">
+        <header className="h-16 md:h-20 px-6 md:px-10 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0f0f0f]">
+
+
           <div className="flex items-center gap-4">
              <div className="w-8 h-8 rounded-lg bg-primary shadow-[0_0_20px_rgba(0,255,0,0.4)] flex items-center justify-center">
                 <Tv className="w-5 h-5 text-black" />
@@ -73,11 +76,12 @@ const Index = () => {
 
              <div 
                onClick={handleAdminClick}
-               className="w-10 h-10 rounded-full bg-[#121418] border border-white/5 flex items-center justify-center text-zinc-500 hover:text-primary transition-colors cursor-pointer group"
+               className="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-primary transition-colors cursor-pointer group"
                title={user ? 'Admin Panel' : 'Login'}
              >
                 {user ? <Shield className="w-5 h-5 group-hover:text-primary" /> : <User className="w-5 h-5 group-hover:text-primary" />}
              </div>
+
           </div>
         </header>
 
@@ -86,9 +90,12 @@ const Index = () => {
           
           {/* PLAYER ZONE (70%) */}
           <div className="flex-1 p-4 md:p-8 flex items-center justify-center bg-[#050505] relative">
+
+
             {selectedChannel ? (
               <div className="w-full h-full max-w-6xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/5 relative group">
-                <VideoPlayer channel={selectedChannel} />
+                <VideoPlayer key={selectedChannel.id} channel={selectedChannel} />
+
               </div>
             ) : (
               <div className="flex flex-col items-center gap-6 animate-pulse">

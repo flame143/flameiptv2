@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import shaka from 'shaka-player';
+
 import type { Channel } from './Sidebar';
 import { 
   Play, 
@@ -229,24 +231,36 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
         });
 
-        // Configure player before attaching
+        // Configure player for FAST PLAYBACK
         player.configure({
           streaming: {
-            bufferingGoal: 30,
-            rebufferingGoal: 15,
-            bufferBehind: 30,
+            bufferingGoal: 5,            // Aggressive: Start after 5s of buffer (was 30)
+            rebufferingGoal: 2,          // Aggressive: Rebuffer for 2s (was 15)
+            bufferBehind: 10,
             retryParameters: {
-              maxAttempts: 5,
-              baseDelay: 1000,
+              maxAttempts: 3,            // Fewer attempts, fail faster to trigger recovery
+              baseDelay: 500,
               backoffFactor: 2,
-              timeout: 30000
+              timeout: 10000             // Faster timeout
+            },
+            lowLatencyMode: true,        // Enable LL mode
+            jumpLargeGaps: true,         // Avoid getting stuck in gap
+            inaccurateManifestTolerance: 2
+          },
+          manifest: {
+            retryParameters: {
+              maxAttempts: 3,
+              baseDelay: 500,
+              timeout: 10000
             }
           },
           abr: {
             enabled: true,
-            defaultBandwidthEstimate: 1000000
+            defaultBandwidthEstimate: 500000, // Start with lower estimate for faster initial load
+            switchInterval: 1
           }
         });
+
 
         // Attach player to video element
         await player.attach(video);
@@ -494,6 +508,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 bg-[#0a0a0a] border-white/10 text-white">
+
+
               
               {/* Resolution Submenu */}
               <DropdownMenuSub>
@@ -507,6 +523,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
                   </span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="bg-[#0a0a0a] border-white/10 text-white min-w-[150px]">
+
+
                   <DropdownMenuItem 
                     className="flex items-center justify-between hover:bg-white/10 cursor-pointer"
                     onClick={() => changeQuality('auto')}
@@ -538,6 +556,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
                   <span className="text-xs text-zinc-500">{playbackSpeed}x</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="bg-[#0a0a0a] border-white/10 text-white">
+
+
                   {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
                     <DropdownMenuItem 
                       key={speed}

@@ -46,11 +46,14 @@ const Sidebar = ({
 
   return (
     <aside className="w-full md:w-80 lg:w-96 h-full bg-[#121418] border-l border-white/5 flex flex-col shrink-0 overflow-hidden">
+
+
       {/* Category Dropdown */}
       <div className="p-4 border-b border-white/5">
         <div className="relative">
           <select 
-            className="w-full bg-[#1a1c22] border-none text-white text-sm font-bold h-12 px-4 rounded-xl appearance-none cursor-pointer focus:ring-1 focus:ring-primary/50"
+            className="w-full bg-zinc-900 border-none text-white text-sm font-bold h-12 px-4 rounded-xl appearance-none cursor-pointer focus:ring-1 focus:ring-primary/50"
+
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
@@ -69,7 +72,8 @@ const Sidebar = ({
             placeholder="Search channel..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-[#1a1c22] border-none text-white h-12 pl-12 rounded-xl placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-primary/50"
+            className="bg-zinc-900 border-none text-white h-12 pl-12 rounded-xl placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-primary/50"
+
           />
         </div>
       </div>
@@ -95,12 +99,7 @@ const Sidebar = ({
                   <span className="truncate text-sm uppercase tracking-wide">{channel.name}</span>
                 </div>
                 
-                <div className={cn(
-                  "text-[10px] px-1.5 py-0.5 rounded font-bold uppercase",
-                  isSelected ? "bg-black/20 text-black" : "bg-white/5 text-zinc-600 group-hover:text-zinc-400"
-                )}>
-                  {channel.type === 'dash' ? 'DASH' : 'M3U8'}
-                </div>
+
               </button>
             );
           })}
@@ -110,8 +109,10 @@ const Sidebar = ({
       {/* Footer Branding with Login/Admin Button */}
       <div 
         onClick={onAdminClick}
-        className="p-4 bg-[#0a0b0e] border-t border-white/5 flex items-center justify-between cursor-pointer group hover:bg-[#1a1c22] transition-colors"
+        className="p-4 bg-[#0a0b0e] border-t border-white/5 flex items-center justify-between cursor-pointer group hover:bg-zinc-900 transition-colors"
       >
+
+
         <div className="flex items-center gap-2">
            <Shield className="w-4 h-4 text-zinc-700 group-hover:text-primary transition-colors" />
            <span className="text-[10px] font-black text-zinc-700 group-hover:text-primary uppercase tracking-widest transition-colors">Admin Dashboard</span>
