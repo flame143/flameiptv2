@@ -48,7 +48,107 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
   const [currentQuality, setCurrentQuality] = useState<number | 'auto'>('auto');
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isPiP, setIsPiP] = useState(false);
+  const [ytPlayer, setYtPlayer] = useState<any>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const ytContainerRef = useRef<HTMLDivElement>(null);
+
+  // YouTube API initialization
+  useEffect(() => {
+    if (channel.type !== 'youtube') return;
+
+    const loadYT = () => {
+      if (!(window as any).YT) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+      }
+
+      (window as any).onYouTubeIframeAPIReady = () => {
+        initPlayer();
+      };
+
+      if ((window as any).YT && (window as any).YT.Player) {
+        initPlayer();
+      }
+    };
+
+    const initPlayer = () => {
+      const embedUrl = channel.embedUrl || '';
+      let videoId = '';
+      let channelId = '';
+
+      if (embedUrl.includes('live_stream?channel=')) {
+        channelId = embedUrl.split('channel=')[1]?.split('&')[0];
+      } else {
+        videoId = embedUrl.split('/embed/')[1]?.split('?')[0];
+      }
+
+      if (!videoId && !channelId) return;
+
+      const playerOptions: any = {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          iv_load_policy: 3,
+          showinfo: 0,
+          mute: 0,
+          enablejsapi: 1,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (event: any) => {
+            setYtPlayer(event.target);
+            setIsLoading(false);
+            setIsPlaying(true);
+            event.target.playVideo();
+          },
+          onStateChange: (event: any) => {
+            if (event.data === (window as any).YT.PlayerState.PLAYING) setIsPlaying(true);
+            if (event.data === (window as any).YT.PlayerState.PAUSED) setIsPlaying(false);
+          },
+          onError: (error: any) => {
+            console.error('YouTube Player Error:', error.data);
+            setIsLoading(false);
+          }
+        }
+      };
+
+      if (videoId) {
+        playerOptions.videoId = videoId;
+      } else if (channelId) {
+        playerOptions.playerVars.listType = 'live_stream';
+        playerOptions.playerVars.list = channelId;
+      }
+
+      const player = new (window as any).YT.Player(ytContainerRef.current, playerOptions);
+    };
+
+
+
+    loadYT();
+
+    return () => {
+      if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
+    };
+  }, [channel]);
+
+  const toggleYtPlay = () => {
+    if (!ytPlayer) return;
+    const state = ytPlayer.getPlayerState();
+    if (state === 1) { // playing
+      ytPlayer.pauseVideo();
+      setIsPlaying(false);
+    } else {
+      ytPlayer.playVideo();
+      setIsPlaying(true);
+    }
+  };
+
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -244,8 +344,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
               timeout: 10000             // Faster timeout
             },
             lowLatencyMode: true,        // Enable LL mode
-            jumpLargeGaps: true,         // Avoid getting stuck in gap
             inaccurateManifestTolerance: 2
+
           },
           manifest: {
             retryParameters: {
@@ -398,39 +498,64 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
   if (channel.type === 'youtube') {
     return (
-      <div className="w-full h-screen bg-black">
-        <iframe
-          src={`${channel.embedUrl}&autoplay=1&mute=0`}
-          className="w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{ position: 'relative' }}
+      <div 
+        ref={containerRef}
+        className="w-full h-full bg-black flex items-center justify-center relative group overflow-hidden"
+        onMouseMove={handleMouseMove}
+      >
+        <div className="w-full h-full pointer-events-none">
+          <div ref={ytContainerRef} className="w-full h-full" />
+        </div>
+        
+        {/* Overlay to block interaction and handle clicks */}
+        <div 
+          className="absolute inset-0 z-10 cursor-pointer" 
+          onClick={toggleYtPlay}
         />
+
+        {/* Custom YouTube Controls */}
+        <div className={cn(
+          "absolute inset-0 flex flex-col justify-end transition-opacity duration-300 z-20 bg-gradient-to-t from-black/80 via-transparent to-transparent",
+          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
+          <div className="p-4 flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={toggleYtPlay}
+            >
+              {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
+            </Button>
+            
+            <div className="flex-1" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={toggleFullScreen}
+            >
+              {isFullScren ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
+            </Button>
+          </div>
+        </div>
+
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+          </div>
+        )}
+
         <style>{`
-          [class*="lovable"],
-          [class*="Lovable"],
-          [id*="lovable"],
-          [id*="Lovable"],
-          [data-lovable],
-          .lovable-button,
-          .lovable-editor {
+          [class*="lovable"], [class*="Lovable"], [id*="lovable"], [id*="Lovable"], [data-lovable], .lovable-button, .lovable-editor {
             display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            position: absolute !important;
-            width: 0 !important;
-            height: 0 !important;
-            clip: rect(0 0 0 0) !important;
-            margin: -1px !important;
-            padding: 0 !important;
-            border: 0 !important;
-            overflow: hidden !important;
           }
         `}</style>
       </div>
     );
   }
+
 
   return (
     <div 
