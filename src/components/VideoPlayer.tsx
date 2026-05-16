@@ -160,7 +160,13 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
 
           // Setup event listeners
           const onPlayerError = (error: any) => {
-            console.error('Shaka player error:', error);
+            console.error('Shaka player error details:', {
+              category: error.category,
+              code: error.code,
+              severity: error.severity,
+              message: error.message,
+              data: error.data
+            });
             // Only attempt recovery for critical errors and with a delay to avoid loops
             if (isMounted && playerRef.current === player && error.severity === 2) { // 2 = CRITICAL
               console.warn('Critical error detected, retrying in 5 seconds...');
@@ -171,6 +177,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
               }, 5000);
             }
           };
+
 
           const onPlaying = async () => {
             if (isMounted && video.muted) {
