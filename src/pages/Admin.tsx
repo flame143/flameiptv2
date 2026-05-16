@@ -48,16 +48,52 @@ const Admin = () => {
   const [form, setForm] = useState<Omit<ChannelRow, 'id'>>(empty);
   const [clearKeyText, setClearKeyText] = useState('');
   const [search, setSearch] = useState('');
+  const [debug, setDebug] = useState<any>({ status: 'idle' });
 
   useEffect(() => {
-    if (loading || roleLoading) return;
-    if (!user) navigate('/auth');
-    else if (!isAdmin) {
-      toast({ description: 'You are not an admin.', variant: 'destructive' });
-      navigate('/');
-    } else {
+    const run = async () => {
+      console.log('[Admin] auth state', { loading, roleLoading, userId: user?.id, email: user?.email, isAdmin });
+      if (loading || roleLoading) {
+        setDebug({ status: 'waiting', loading, roleLoading });
+        return;
+      }
+      if (!user) {
+        console.log('[Admin] no user, redirect /auth');
+        setDebug({ status: 'no-user' });
+        return;
+      }
+
+      // Direct query for debug visibility
+      const { data: rolesAll, error: errAll } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id);
+      const { data: adminRow, error: errAdmin } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      console.log('[Admin] roles for user', { rolesAll, errAll, adminRow, errAdmin });
+      setDebug({
+        status: 'checked',
+        userId: user.id,
+        email: user.email,
+        isAdminContext: isAdmin,
+        rolesAll,
+        errAll: errAll?.message,
+        adminRow,
+        errAdmin: errAdmin?.message,
+      });
+
+      if (!adminRow) {
+        toast({ description: 'You are not an admin.', variant: 'destructive' });
+        return; // do NOT auto-redirect so debug panel stays visible
+      }
       load();
-    }
+    };
+    run();
   }, [user, isAdmin, loading, roleLoading]);
 
   const load = async () => {
