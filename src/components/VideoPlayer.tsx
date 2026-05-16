@@ -159,11 +159,16 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
 
           // Setup event listeners
-          const onError = (error: Event) => {
-            console.error('Playback error:', error);
-            // Attempt recovery
-            if (isMounted && playerRef.current === player) {
-              initializeNewPlayer();
+          const onPlayerError = (error: any) => {
+            console.error('Shaka player error:', error);
+            // Only attempt recovery for critical errors and with a delay to avoid loops
+            if (isMounted && playerRef.current === player && error.severity === 2) { // 2 = CRITICAL
+              console.warn('Critical error detected, retrying in 5 seconds...');
+              setTimeout(() => {
+                if (isMounted && playerRef.current === player) {
+                  initializeNewPlayer();
+                }
+              }, 5000);
             }
           };
 
@@ -179,31 +184,27 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
             }
           };
 
-          video.addEventListener('error', onError);
+          player.addEventListener('error', onPlayerError);
           video.addEventListener('playing', onPlaying);
 
           // Attempt playback
           try {
+            console.log('Attempting to play:', channel.name);
+            if (channel.clearKey) {
+              console.log('DRM Keys configured for:', channel.name, channel.clearKey);
+            }
             await video.play();
             setIsLoading(false);
           } catch (err) {
-            console.error('Play failed:', err);
-            // Retry once more after a delay
-            if (isMounted) {
-              setTimeout(async () => {
-                if (isMounted && playerRef.current === player) {
-                  try {
-                    await video.play();
-                  } catch (retryErr) {
-                    console.error('Retry failed:', retryErr);
-                  }
-                }
-              }, 2000);
+            if (err instanceof Error && err.name === 'AbortError') {
+              console.warn('Play request was aborted (expected during rapid switching or reload)');
+            } else {
+              console.error('Play failed:', err);
             }
           }
 
           return () => {
-            video.removeEventListener('error', onError);
+            player.removeEventListener('error', onPlayerError);
             video.removeEventListener('playing', onPlaying);
           };
         }
@@ -214,6 +215,7 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         }
       }
     };
+
 
     // Start initialization process
     initializeNewPlayer();
