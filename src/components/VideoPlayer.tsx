@@ -66,6 +66,28 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         // Create new player
         const player = new shaka.Player();
         
+        // Register request filter for proxy and headers
+        player.getNetworkingEngine().registerRequestFilter((type, request) => {
+          // Add custom headers if available
+          if (channel.userAgent) {
+            request.headers['X-User-Agent'] = channel.userAgent;
+            // Note: Direct 'User-Agent' header is forbidden by browsers, 
+            // but many proxies use 'X-User-Agent' to override it.
+          }
+          if (channel.referrer) {
+            request.headers['X-Referer'] = channel.referrer;
+          }
+
+          // Apply proxy to all requests
+          if (channel.proxyUrl) {
+            const originalUrl = request.uris[0];
+            const proxyUrl = channel.proxyUrl.includes('{url}')
+              ? channel.proxyUrl.replace('{url}', encodeURIComponent(originalUrl))
+              : channel.proxyUrl + encodeURIComponent(originalUrl);
+            request.uris = [proxyUrl];
+          }
+        });
+
         // Configure player before attaching
         player.configure({
           streaming: {
@@ -110,13 +132,8 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
         }
 
         if (channel.manifestUri) {
-          const url = channel.proxyUrl
-            ? (channel.proxyUrl.includes('{url}')
-                ? channel.proxyUrl.replace('{url}', encodeURIComponent(channel.manifestUri))
-                : channel.proxyUrl + encodeURIComponent(channel.manifestUri))
-            : channel.manifestUri;
           // Load manifest
-          await player.load(url);
+          await player.load(channel.manifestUri);
           
           if (!isMounted) {
             await player.destroy();

@@ -14,6 +14,8 @@ export interface Channel {
   embedUrl?: string;
   logo: string;
   proxyUrl?: string;
+  userAgent?: string;
+  referrer?: string;
 }
 
 interface SidebarProps {

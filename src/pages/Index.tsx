@@ -18,6 +18,8 @@ const mapRow = (r: any): Channel => ({
   embedUrl: r.embed_url || undefined,
   logo: r.logo || '',
   proxyUrl: r.proxy_url || undefined,
+  userAgent: r.user_agent || undefined,
+  referrer: r.referrer || undefined,
 });
 
 const Index = () => {
