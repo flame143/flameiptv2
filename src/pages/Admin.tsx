@@ -168,6 +168,9 @@ const Admin = () => {
       </header>
 
       <div className="p-4 max-w-5xl mx-auto">
+        <pre className="mb-4 p-3 bg-zinc-950 border border-zinc-800 rounded text-xs text-green-300 overflow-x-auto whitespace-pre-wrap">
+{JSON.stringify(debug, null, 2)}
+        </pre>
         <Input
           placeholder="Search channels..."
           value={search}
