@@ -16,43 +16,73 @@ export type Database = {
     Tables: {
       channels: {
         Row: {
+          category: string | null
+          channel_no: string | null
           clear_key: Json | null
           created_at: string
+          drm_type: string | null
           embed_url: string | null
+          epg_id: string | null
+          epg_url: string | null
           id: string
           logo: string | null
           manifest_uri: string | null
           name: string
+          proxy_backups: Json | null
+          proxy_provider: string | null
           proxy_url: string | null
+          referrer: string | null
           sort_order: number
+          tvhpp_slug: string | null
           type: string
           updated_at: string
+          user_agent: string | null
         }
         Insert: {
+          category?: string | null
+          channel_no?: string | null
           clear_key?: Json | null
           created_at?: string
+          drm_type?: string | null
           embed_url?: string | null
+          epg_id?: string | null
+          epg_url?: string | null
           id?: string
           logo?: string | null
           manifest_uri?: string | null
           name: string
+          proxy_backups?: Json | null
+          proxy_provider?: string | null
           proxy_url?: string | null
+          referrer?: string | null
           sort_order?: number
+          tvhpp_slug?: string | null
           type: string
           updated_at?: string
+          user_agent?: string | null
         }
         Update: {
+          category?: string | null
+          channel_no?: string | null
           clear_key?: Json | null
           created_at?: string
+          drm_type?: string | null
           embed_url?: string | null
+          epg_id?: string | null
+          epg_url?: string | null
           id?: string
           logo?: string | null
           manifest_uri?: string | null
           name?: string
+          proxy_backups?: Json | null
+          proxy_provider?: string | null
           proxy_url?: string | null
+          referrer?: string | null
           sort_order?: number
+          tvhpp_slug?: string | null
           type?: string
           updated_at?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
