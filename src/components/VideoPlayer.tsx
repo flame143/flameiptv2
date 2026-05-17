@@ -331,32 +331,33 @@ const VideoPlayer = ({ channel }: VideoPlayerProps) => {
           }
         });
 
-        // Configure player for FAST PLAYBACK
+        // Configure player for MAXIMUM FAST PLAYBACK
         player.configure({
           streaming: {
-            bufferingGoal: 5,            // Aggressive: Start after 5s of buffer (was 30)
-            rebufferingGoal: 2,          // Aggressive: Rebuffer for 2s (was 15)
-            bufferBehind: 10,
+            bufferingGoal: 2,            // Very Aggressive: Start after 2s of buffer
+            rebufferingGoal: 1,          // Very Aggressive: Rebuffer for 1s
+            bufferBehind: 5,             // Keep less buffer behind to save memory
+            jumpLargeGaps: true,         // Automatically jump over large gaps
+            stallEnabled: true,          // Attempt to recover from stalls
             retryParameters: {
-              maxAttempts: 3,            // Fewer attempts, fail faster to trigger recovery
-              baseDelay: 500,
-              backoffFactor: 2,
-              timeout: 10000             // Faster timeout
+              maxAttempts: 3,
+              baseDelay: 200,            // Faster retries
+              backoffFactor: 1.5,
+              timeout: 5000              // Shorter timeout
             },
-            lowLatencyMode: true,        // Enable LL mode
+            lowLatencyMode: true,
             inaccurateManifestTolerance: 2
-
           },
           manifest: {
             retryParameters: {
               maxAttempts: 3,
-              baseDelay: 500,
-              timeout: 10000
+              baseDelay: 200,
+              timeout: 5000
             }
           },
           abr: {
             enabled: true,
-            defaultBandwidthEstimate: 500000, // Start with lower estimate for faster initial load
+            defaultBandwidthEstimate: 100000, // Lowest estimate for instant first frame
             switchInterval: 1
           }
         });
